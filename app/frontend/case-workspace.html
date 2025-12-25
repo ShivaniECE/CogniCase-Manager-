@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Workspace | Knowledge Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== RESET & BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-dark: #003366;
+            --primary-blue: #0066cc;
+            --sky-blue: #4dabf7;
+            --primary-light: #e6f2ff;
+            --text-dark: #212529;
+            --text-light: #495057;
+            --gray-light: #f8f9fa;
+            --gray-medium: #e9ecef;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 15px rgba(0, 102, 204, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* ===== WORKSPACE LAYOUT ===== */
+        .workspace-container {
+            display: flex;
+            min-height: 100vh;
+            background: var(--gray-light);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary-blue) 100%);
+            color: white;
+            padding: 25px 0;
+            position: fixed;
+            height: 100vh;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .logo-icon {
+            background: var(--sky-blue);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-nav {
+            padding: 0 15px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            margin-bottom: 6px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            border-left: 4px solid var(--sky-blue);
+            font-weight: 600;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .workspace-main {
+            flex: 1;
+            margin-left: 260px;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* ===== TOP NAVIGATION ===== */
+        .top-nav {
+            background: white;
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--gray-medium);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--primary-light);
+            color: var(--primary-blue);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .back-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .case-title-section h1 {
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .case-id-badge {
+            background: var(--primary-light);
+            color: var(--primary-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--sky-blue));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* ===== CONTENT LAYOUT ===== */
+        .content-wrapper {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1200px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+        }
+
+        /* ===== LEFT PANEL - CASE INFORMATION ===== */
+        .case-info-panel {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            height: fit-content;
+            border-top: 4px solid var(--primary-blue);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--gray-medium);
+        }
+
+        .panel-title {
+            color: var(--primary-dark);
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            color: var(--primary-blue);
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .status-open {
+            background: rgba(40, 167, 69, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .status-in-progress {
+            background: rgba(255, 193, 7, 0.12);
+            color: var(--warning);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .status-closed {
+            background: rgba(220, 53, 69, 0.12);
+            color: var(--danger);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        /* Case Info Grid */
+        .case-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .info-item {
+            padding: 0;
+            background: transparent;
+            border: none;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            color: var(--primary-dark);
+            font-weight: 500;
+            padding: 8px 12px;
+            background: var(--gray-light);
+            border-radius: 6px;
+            border: 1px solid var(--gray-medium);
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .priority-high {
+            background: rgba(220, 53, 69, 0.12);
+            color: var(--danger);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .priority-medium {
+            background: rgba(255, 193, 7, 0.12);
+            color: var(--warning);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .priority-low {
+            background: rgba(40, 167, 69, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        /* ===== RIGHT PANEL - DOCUMENTS & PRECEDENTS ===== */
+        .documents-panel {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 0;
+            height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid var(--sky-blue);
+        }
+
+        .documents-header {
+            padding: 25px;
+            border-bottom: 1px solid var(--gray-medium);
+        }
+
+        .documents-title {
+            color: var(--primary-dark);
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .documents-title i {
+            color: var(--sky-blue);
+        }
+
+        .documents-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* Documents Content */
+        .documents-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 25px 25px;
+        }
+
+        .documents-section {
+            margin-top: 20px;
+        }
+
+        .section-title {
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--gray-medium);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Policy Card */
+        .policy-card {
+            background: var(--gray-light);
+            border-radius: 8px;
+            border: 1px solid var(--gray-medium);
+            padding: 20px;
+            margin-bottom: 18px;
+            transition: var(--transition);
+        }
+
+        .policy-card:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.1);
+        }
+
+        .policy-card.critical {
+            border: 2px solid var(--danger);
+            background: linear-gradient(to right, rgba(255, 245, 245, 0.05), rgba(254, 215, 215, 0.05));
+            order: -1;
+        }
+
+        .policy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .policy-name {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .pdf-link {
+            color: var(--primary-blue);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .pdf-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .policy-badges {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .relevance-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--primary-blue);
+            border: 1px solid rgba(0, 102, 204, 0.2);
+        }
+
+        .critical-badge {
+            background: var(--danger);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .policy-content {
+            color: var(--text-dark);
+            line-height: 1.6;
+            font-size: 0.9rem;
+            margin: 15px 0;
+            position: relative;
+            max-height: 120px;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .policy-content.expanded {
+            max-height: 1000px;
+        }
+
+        .see-more-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+            transition: var(--transition);
+        }
+
+        .see-more-btn:hover {
+            color: var(--primary-dark);
+        }
+
+        /* Precedent Cards */
+        .precedent-card {
+            padding: 18px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid var(--gray-medium);
+            background: white;
+            transition: var(--transition);
+        }
+
+        .precedent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .precedent-card.approved {
+            border-left: 4px solid var(--success);
+            background: rgba(40, 167, 69, 0.03);
+        }
+
+        .precedent-card.rejected {
+            border-left: 4px solid var(--danger);
+            background: rgba(220, 53, 69, 0.03);
+        }
+
+        .precedent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .precedent-id {
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 0.95rem;
+        }
+
+        .precedent-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-approved {
+            background: rgba(40, 167, 69, 0.12);
+            color: var(--success);
+        }
+
+        .status-rejected {
+            background: rgba(220, 53, 69, 0.12);
+            color: var(--danger);
+        }
+
+        .precedent-details {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .precedent-match {
+            color: var(--primary-dark);
+            font-weight: 500;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        /* Loading Styles */
+        .policy-loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0066cc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .search-status {
+            font-weight: bold;
+            color: #0066cc;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 992px) {
+            .content-wrapper {
+                padding: 20px;
+                gap: 20px;
+            }
+            
+            .case-info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+            
+            .sidebar.open {
+                width: 260px;
+            }
+            
+            .workspace-main {
+                margin-left: 0;
+            }
+            
+            .top-nav {
+                padding: 15px 20px;
+            }
+            
+            .content-wrapper {
+                padding: 15px;
+            }
+            
+            .case-info-panel,
+            .documents-panel {
+                padding: 20px;
+            }
+            
+            .policy-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .policy-badges {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .text-success {
+            color: var(--success);
+        }
+
+        .text-danger {
+            color: var(--danger);
+        }
+
+        .text-warning {
+            color: var(--warning);
+        }
+
+        .mb-15 {
+            margin-bottom: 15px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        /* ===== SCROLLBAR STYLING ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="workspace-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    CogniCase Manager 
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+                <a href="cases.html" class="nav-item">
+                    <i class="fas fa-folder-open"></i>
+                    All Cases
+                </a>
+                <a href="workspace.html" class="nav-item active">
+                    <i class="fas fa-briefcase"></i>
+                    Case Workspace
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-search"></i>
+                    Document Search
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    Analytics
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="workspace-main">
+            <!-- Top Navigation -->
+            <div class="top-nav">
+                <div class="nav-left">
+                    <a href="cases.html" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Cases
+                    </a>
+                    <div class="case-title-section">
+                        <h1>Case Workspace <span class="case-id-badge">CASE-2024-00158</span></h1>
+                    </div>
+                </div>
+                <div class="user-menu">
+                    <div class="user-avatar">JD</div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-wrapper">
+                <!-- Left Panel: Case Information -->
+                <div class="case-info-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="fas fa-info-circle"></i>
+                            Case Information
+                        </h2>
+                        <span class="status-badge status-open">OPEN</span>
+                    </div>
+                    
+                    <div class="case-info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Case ID</div>
+                            <div class="info-value">CASE-2024-00158</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value">
+                                <span class="status-badge status-open">Open</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Priority</div>
+                            <div class="info-value">
+                                <span class="priority-badge priority-high">High</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Claim Type</div>
+                            <div class="info-value">Car Insurance</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">State</div>
+                            <div class="info-value">California</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Claim Amount</div>
+                            <div class="info-value">$45,000</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Policy Number</div>
+                            <div class="info-value">POL-9876-5432-210</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Damage Type</div>
+                            <div class="info-value">Collision</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Date Filed</div>
+                            <div class="info-value">2024-01-15</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Assigned To</div>
+                            <div class="info-value">John Davis</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Documents & Precedents -->
+                <div class="documents-panel">
+                    <div class="documents-header">
+                        <h2 class="documents-title">
+                            <i class="fas fa-file-contract"></i>
+                            Relevant Policies & Documents
+                        </h2>
+                        <p class="documents-subtitle">Extracted from policy documents and historical precedents</p>
+                        <div id="action-buttons" style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button id="analyze-btn" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-search"></i> Search PDFs
+                            </button>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="documents-content">
+                        <!-- Relevant Policies Section -->
+                        <div class="documents-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-file-pdf"></i>
+                                Relevant Policies
+                            </h3>
+                            
+                            <!-- Loading State -->
+                            <div id="policies-loading" class="policy-loading">
+                                <div class="spinner"></div>
+                                <p>Click "Search PDFs" to extract relevant content</p>
+                                <p><small class="search-status" id="search-status">Ready to search...</small></p>
+                            </div>
+                            
+                            <!-- Dynamic Content Area -->
+                            <div id="dynamic-policies-container">
+                                <!-- Content will be loaded here -->
+                            </div>
+                            
+                            <!-- Error Message -->
+                            <div id="error-message" style="display: none; text-align: center; padding: 20px; color: #dc3545; background: #f8d7da; border-radius: 4px;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <p id="error-text"></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Precedent Cases Section -->
+                        <div class="documents-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-history"></i>
+                                Similar Precedent Cases
+                            </h3>
+                            
+                            <!-- Precedent Card 1 - Approved -->
+                            <div class="precedent-card approved">
+                                <div class="precedent-header">
+                                    <div class="precedent-id">CASE-2023-00942</div>
+                                    <span class="precedent-status status-approved">APPROVED</span>
+                                </div>
+                                <div class="precedent-details">
+                                    <strong>Similarity:</strong> Insurance claim in California with collision damage<br>
+                                    <strong>Claim Amount:</strong> $38,500<br>
+                                    <strong>Outcome:</strong> Approved after additional verification
+                                </div>
+                                <div class="precedent-match">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    92% match to current case
+                                </div>
+                            </div>
+                            
+                            <!-- Precedent Card 2 - Rejected -->
+                            <div class="precedent-card rejected">
+                                <div class="precedent-header">
+                                    <div class="precedent-id">CASE-2023-01567</div>
+                                    <span class="precedent-status status-rejected">REJECTED</span>
+                                </div>
+                                <div class="precedent-details">
+                                    <strong>Similarity:</strong> High-value Claim in California<br>
+                                    <strong>Claim Amount:</strong> $52,000<br>
+                                    <strong>Outcome:</strong> Rejected due to insufficient documentation
+                                </div>
+                                <div class="precedent-match">
+                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                    88% match to current case
+                                </div>
+                            </div>
+                            
+                            <!-- Precedent Card 3 - Approved -->
+                            <div class="precedent-card approved">
+                                <div class="precedent-header">
+                                    <div class="precedent-id">CASE-2023-01123</div>
+                                    <span class="precedent-status status-approved">APPROVED</span>
+                                </div>
+                                <div class="precedent-details">
+                                    <strong>Similarity:</strong> Critical damage claim exceeding $40,000<br>
+                                    <strong>Claim Amount:</strong> $41,200<br>
+                                    <strong>Outcome:</strong> Approved with 15% reduction for depreciation
+                                </div>
+                                <div class="precedent-match">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    85% match to current case
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <script>
+    console.log("🚀 Case Workspace Loaded");
+    
+    // ===== CORE FUNCTIONS =====
+    
+    // Get REAL case data from localStorage or URL
+    function getCaseData() {
+        // Try to get from localStorage first
+        const savedCase = localStorage.getItem('currentCase');
+        if (savedCase) {
+            try {
+                const parsed = JSON.parse(savedCase);
+                console.log('📥 Using saved case data:', parsed);
+                return parsed;
+            } catch (e) {
+                console.error('Error parsing saved case:', e);
+            }
+        }
+        
+        // Fallback to URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const caseData = {
+            caseId: urlParams.get('caseId') || 'CASE-2024-00158',
+            title: 'Insurance Claim',
+            status: 'Open',
+            priority: 'High',
+            claimType: urlParams.get('type') || 'Car Insurance',
+            state: urlParams.get('state') || 'California',
+            claimAmount: urlParams.get('amount') || '$45,000',
+            damageType: urlParams.get('damage') || 'Collision',
+            policyNumber: 'POL-' + Math.floor(10000 + Math.random() * 90000),
+            dateFiled: new Date().toISOString().split('T')[0]
+        };
+        
+        console.log('📥 Using URL case data:', caseData);
+        return caseData;
+    }
+    
+    // Update the case info panel with actual data
+    function updateCaseInfo() {
+        const caseData = getCaseData();
+        
+        console.log('📋 Updating UI with case:', caseData);
+        
+        // Update the case ID badge
+        const badge = document.querySelector('.case-id-badge');
+        if (badge) badge.textContent = caseData.caseId;
+        
+        // Update all info items
+        const infoItems = document.querySelectorAll('.info-value');
+        if (infoItems.length >= 10) {
+            infoItems[0].textContent = caseData.caseId;
+            
+            // Status
+            const statusClass = caseData.status.toLowerCase().replace(' ', '-');
+            infoItems[1].innerHTML = `<span class="status-badge status-${statusClass}">${caseData.status}</span>`;
+            
+            // Priority
+            const priorityClass = caseData.priority.toLowerCase();
+            infoItems[2].innerHTML = `<span class="priority-badge priority-${priorityClass}">${caseData.priority}</span>`;
+            
+            // Case details
+            infoItems[3].textContent = caseData.claimType;
+            infoItems[4].textContent = caseData.state;
+            infoItems[5].textContent = caseData.claimAmount;
+            infoItems[6].textContent = caseData.policyNumber;
+            infoItems[7].textContent = caseData.damageType;
+            infoItems[8].textContent = caseData.dateFiled;
+            infoItems[9].textContent = 'John Davis';
+        }
+        
+        // Update page title
+        document.title = `${caseData.caseId} - ${caseData.claimType} - Case`;
+        
+        return caseData;
+    }
+    
+    // ===== EVENT HANDLERS =====
+    
+    function setupEventListeners() {
+        // Search PDFs button
+        const analyzeBtn = document.getElementById('analyze-btn');
+        if (analyzeBtn) {
+            analyzeBtn.addEventListener('click', searchActualPDFs);
+        }
+        
+        // Test backend button
+        const testBtn = document.getElementById('test-btn');
+        if (testBtn) {
+            testBtn.addEventListener('click', testBackendConnection);
+        }
+    }
+    
+    // ===== BACKEND COMMUNICATION =====
+    
+    async function checkBackendConnection() {
+        try {
+            const response = await fetch('http://localhost:5000/api/health');
+            const data = await response.json();
+            
+            const statusElement = document.getElementById('search-status');
+            if (statusElement) {
+                if (data.status === 'healthy') {
+                    statusElement.textContent = `Searching PDFs.....`;
+                    statusElement.style.color = '#28a745';
+                } else {
+                    statusElement.textContent = "⚠️ Backend degraded";
+                    statusElement.style.color = '#ffc107';
+                }
+            }
+            
+            console.log("✅ Backend connected:", data);
+            return data.status === 'healthy';
+            
+        } catch (error) {
+            const statusElement = document.getElementById('search-status');
+            if (statusElement) {
+                statusElement.textContent = "❌ Backend not connected (port 5000)";
+                statusElement.style.color = '#dc3545';
+            }
+            
+            console.error("❌ Backend not connected:", error);
+            return false;
+        }
+    }
+    
+    async function testBackendConnection() {
+        const statusElement = document.getElementById('search-status');
+        if (statusElement) {
+            statusElement.textContent = "Testing backend...";
+            statusElement.style.color = '#17a2b8';
+        }
+        
+        try {
+            // Test health endpoint
+            const healthResponse = await fetch('http://localhost:5000/api/health');
+            const healthData = await healthResponse.json();
+            
+            // Test PDF list
+            const pdfResponse = await fetch('http://localhost:5000/api/list-pdfs');
+            const pdfData = await pdfResponse.json();
+            
+            let message = `✅ BACKEND STATUS: ${healthData.status}\n\n`;
+            message += `📄 PDF DOCUMENTS:\n`;
+            message += `• Loaded: ${pdfData.pdf_count || 0} PDFs\n`;
+            message += `• Folder: ${pdfData.folder || 'Unknown'}\n\n`;
+            
+            if (pdfData.pdfs && pdfData.pdfs.length > 0) {
+                message += `Available PDFs:\n`;
+                pdfData.pdfs.slice(0, 5).forEach(pdf => {
+                    message += `• ${pdf.filename}\n`;
+                });
+                if (pdfData.pdfs.length > 5) {
+                    message += `• ... and ${pdfData.pdfs.length - 5} more\n`;
+                }
+            }
+            
+            message += `\nClick "Search PDFs" to extract actual content.`;
+            
+            alert(message);
+            
+            if (statusElement) {
+                statusElement.textContent = `✅ Ready (${pdfData.pdf_count || 0} PDFs)`;
+                statusElement.style.color = '#28a745';
+            }
+            
+        } catch (error) {
+            const errorMsg = `❌ BACKEND CONNECTION FAILED\n\nError: ${error.message}\n\nMake sure:\n1. Run: python app.py\n2. Check port 5000\n3. PDFs in backend/data/documents/`;
+            alert(errorMsg);
+            
+            if (statusElement) {
+                statusElement.textContent = "❌ Backend not connected";
+                statusElement.style.color = '#dc3545';
+            }
+        }
+    }
+    
+    // ===== MAIN PDF SEARCH FUNCTION =====
+    
+    async function searchActualPDFs() {
+        console.log("🔍 Starting PDF search...");
+        
+        // Get current case data
+        const caseData = updateCaseInfo();
+        
+        // Show loading state
+        const loadingElement = document.getElementById('policies-loading');
+        const container = document.getElementById('dynamic-policies-container');
+        const errorElement = document.getElementById('error-message');
+        const statusElement = document.getElementById('search-status');
+        
+        if (loadingElement) loadingElement.style.display = 'block';
+        if (container) container.innerHTML = '';
+        if (errorElement) errorElement.style.display = 'none';
+        
+        if (statusElement) {
+            statusElement.textContent = `Searching PDFs for "${caseData.claimType}" in ${caseData.state}...`;
+            statusElement.style.color = '#17a2b8';
+        }
+        
+        try {
+            // Prepare search data
+            const searchData = {
+                "Claim Type": caseData.claimType,
+                "State": caseData.state,
+                "Claim Amount": caseData.claimAmount,
+                "Damage Type": caseData.damageType,
+                "Case ID": caseData.caseId,
+                "Policy Number": caseData.policyNumber,
+                "Date Filed": caseData.dateFiled,
+                "Priority": caseData.priority,
+                "Title": caseData.title,
+                "search_timestamp": Date.now()
+            };
+            
+            console.log("📤 Sending search data:", searchData);
+            
+            // Send to backend
+            const response = await fetch('http://localhost:5000/api/analyze-case', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    case_data: searchData
+                })
+            });
+            
+            console.log("📥 Backend response status:", response.status);
+            
+            if (!response.ok) {
+                throw new Error(`Backend returned ${response.status}: ${await response.text()}`);
+            }
+            
+            const result = await response.json();
+            console.log("📦 Backend result:", result);
+            
+            // Hide loading
+            if (loadingElement) loadingElement.style.display = 'none';
+            
+            if (result.success && result.policies && result.policies.length > 0) {
+                // Display actual PDF content
+                displayRealPDFContent(result.policies, caseData);
+                
+                if (statusElement) {
+                    statusElement.textContent = `✅ Found ${result.policies.length} PDF excerpts for "${caseData.claimType}"`;
+                    statusElement.style.color = '#28a745';
+                }
+                
+                // Store results
+                localStorage.setItem(`results_${caseData.caseId}`, JSON.stringify({
+                    policies: result.policies,
+                    timestamp: new Date().toISOString(),
+                    caseType: caseData.claimType
+                }));
+                
+            } else {
+                // No results
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <i class="fas fa-file-pdf" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                            <h4>No PDF Content Found</h4>
+                            <p>No content found for <strong>${caseData.claimType}</strong> in <strong>${caseData.state}</strong>.</p>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 15px auto; max-width: 500px; text-align: left;">
+                                <p><small><strong>Case Details:</strong></small></p>
+                                <p><small>• Claim Type: ${caseData.claimType}</small></p>
+                                <p><small>• State: ${caseData.state}</small></p>
+                                <p><small>• Amount: ${caseData.claimAmount}</small></p>
+                                <p><small>• Damage: ${caseData.damageType}</small></p>
+                            </div>
+                            <p><small>Try searching for different case types or check if PDFs contain relevant content.</small></p>
+                        </div>
+                    `;
+                }
+                
+                if (statusElement) {
+                    statusElement.textContent = `❌ No content found for "${caseData.claimType}"`;
+                    statusElement.style.color = '#dc3545';
+                }
+            }
+            
+        } catch (error) {
+            console.error("❌ Search error:", error);
+            
+            // Hide loading
+            if (loadingElement) loadingElement.style.display = 'none';
+            
+            // Show error
+            if (errorElement) {
+                errorElement.style.display = 'block';
+                const errorText = document.getElementById('error-text');
+                if (errorText) {
+                    errorText.textContent = `Error: ${error.message}. Make sure Flask backend is running on port 5000.`;
+                }
+            }
+            
+            if (statusElement) {
+                statusElement.textContent = "❌ Search failed";
+                statusElement.style.color = '#dc3545';
+            }
+            
+            // Try to show cached results
+            const cached = localStorage.getItem(`results_${caseData.caseId}`);
+            if (cached && container) {
+                try {
+                    const cachedData = JSON.parse(cached);
+                    displayRealPDFContent(cachedData.policies, caseData);
+                    if (statusElement) {
+                        statusElement.textContent = "Showing cached results";
+                        statusElement.style.color = '#ffc107';
+                    }
+                } catch (e) {
+                    console.error("Error loading cached results:", e);
+                }
+            }
+        }
+    }
+    
+    // ===== DISPLAY FUNCTIONS =====
+    
+    function displayRealPDFContent(policies, caseData) {
+        const container = document.getElementById('dynamic-policies-container');
+        if (!container) return;
+        
+        if (!policies || policies.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 30px; color: #666;">
+                    <i class="fas fa-file-pdf" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                    <p>Backend returned empty results.</p>
+                    <p><small>PDFs might not contain content matching "${caseData.claimType}"</small></p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 5px 0; color: #003366;">
+                    <i class="fas fa-search"></i> Search Results for: ${caseData.claimType} in ${caseData.state}
+                </h4>
+                <p style="margin: 0; color: #666; font-size: 0.9em;">
+                    Showing ${policies.length} excerpts from PDF documents
+                </p>
+            </div>
+        `;
+        
+        // Sort by relevance
+        const sortedPolicies = [...policies].sort((a, b) => {
+            // Critical first
+            if (a.critical && !b.critical) return -1;
+            if (!a.critical && b.critical) return 1;
+            // Then by relevance score
+            return (b.relevance_score || 0) - (a.relevance_score || 0);
+        });
+        
+        sortedPolicies.forEach((policy, index) => {
+            // Skip if no real content
+            if (!policy.content || policy.content.trim() === '') {
+                return;
+            }
+            
+            const criticalClass = policy.critical ? 'critical' : '';
+            const relevancePercent = Math.round((policy.relevance_score || 0.5) * 100);
+            
+            // Get PDF filename
+            let pdfFilename = 'document.pdf';
+            let pdfUrl = '#';
+            
+            if (policy.source) {
+                pdfFilename = policy.source.split(/[\\\/]/).pop();
+            } else if (policy.filename) {
+                pdfFilename = policy.filename;
+            }
+            
+            // Ensure PDF extension
+            if (!pdfFilename.toLowerCase().endsWith('.pdf')) {
+                pdfFilename += '.pdf';
+            }
+            
+            pdfUrl = `http://localhost:5000/api/documents/${encodeURIComponent(pdfFilename)}`;
+            const pageNum = policy.page || 1;
+            
+            // Check if content mentions case details
+            const contentLower = policy.content.toLowerCase();
+            const mentionsCase = contentLower.includes(caseData.claimType.toLowerCase()) || 
+                                contentLower.includes(caseData.state.toLowerCase()) ||
+                                contentLower.includes(caseData.damageType.toLowerCase());
+            
+            html += `
+                <div class="policy-card ${criticalClass} ${mentionsCase ? 'relevant-case' : ''}">
+                    <div class="policy-header">
+                        <div class="policy-name">
+                            <a href="${pdfUrl}" target="_blank" class="pdf-link">
+                                <i class="fas fa-file-pdf"></i>
+                                ${pdfFilename}
+                                ${mentionsCase ? ' <span style="color: #28a745; font-size: 0.8em;">(Relevant)</span>' : ''}
+                            </a>
+                        </div>
+                        <div class="policy-badges">
+                            <span class="relevance-badge">${relevancePercent}% Match</span>
+                            ${policy.critical ? '<span class="critical-badge">CRITICAL</span>' : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="policy-content" id="real-pdf-${index}">
+                        <strong>📄 PDF Excerpt (Page ${pageNum}):</strong><br><br>
+                        ${highlightCaseTerms(policy.content, caseData)}
+                        
+                        ${policy.citation ? `<br><br><small><em>${policy.citation}</em></small>` : ''}
+                    </div>
+                    
+                    ${policy.content.length > 200 ? `
+                        <button class="see-more-btn" onclick="toggleContent('real-pdf-${index}', this)">
+                            <span>See More</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    ` : ''}
+                    
+                    <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
+                        <a href="${pdfUrl}" target="_blank" style="color: #0066cc; text-decoration: none;">
+                            <i class="fas fa-external-link-alt"></i> Open PDF Document
+                        </a>
+                        <span style="color: #666; margin-left: 15px;">
+                            <i class="fas fa-file-alt"></i> Page ${pageNum}
+                        </span>
+                        <span style="color: #666; margin-left: 15px;">
+                            <i class="fas fa-percentage"></i> ${relevancePercent}% relevant
+                        </span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    function highlightCaseTerms(content, caseData) {
+        let highlighted = content;
+        
+        // Terms to highlight
+        const terms = [
+            caseData.claimType,
+            caseData.state,
+            caseData.damageType,
+            caseData.claimAmount.replace('$', '\\$'),
+            caseData.priority
+        ].filter(term => term && term.trim() !== '');
+        
+        terms.forEach(term => {
+            if (term && term.length > 2) {
+                try {
+                    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`(${escapedTerm})`, 'gi');
+                    highlighted = highlighted.replace(regex, '<mark style="background: #fff3cd; padding: 0 2px; border-radius: 2px;">$1</mark>');
+                } catch (e) {
+                    console.warn("Could not highlight term:", term, e);
+                }
+            }
+        });
+        
+        return highlighted;
+    }
+    
+    // ===== UTILITY FUNCTIONS =====
+    
+    function autoSearchIfNeeded(caseData) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoSearch = urlParams.get('search') === 'auto';
+        const statusElement = document.getElementById('search-status');
+        
+        if (autoSearch) {
+            if (statusElement) {
+                statusElement.textContent = "Auto-searching PDFs...";
+                statusElement.style.color = '#17a2b8';
+            }
+            
+            setTimeout(searchActualPDFs, 1500);
+        } else if (statusElement) {
+            statusElement.textContent = "Click 'Search PDFs' to analyze case";
+            statusElement.style.color = '#6c757d';
+        }
+    }
+    
+    // ===== INITIALIZATION =====
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("📄 Page loaded - Initializing...");
+        console.log("URL Parameters:", new URLSearchParams(window.location.search).toString());
+        console.log("Stored Case:", localStorage.getItem('currentCase'));
+        
+        // Update case info
+        const caseData = updateCaseInfo();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Check backend connection
+        checkBackendConnection();
+        
+        // Auto-search if needed
+        autoSearchIfNeeded(caseData);
+    });
+    
+    // ===== GLOBAL FUNCTIONS =====
+    
+    // Toggle content visibility
+    window.toggleContent = function(contentId, button) {
+        const content = document.getElementById(contentId);
+        if (!content) return;
+        
+        const isExpanded = content.classList.contains('expanded');
+        
+        if (isExpanded) {
+            content.classList.remove('expanded');
+            if (button) {
+                button.innerHTML = '<span>See More</span><i class="fas fa-chevron-down"></i>';
+            }
+        } else {
+            content.classList.add('expanded');
+            if (button) {
+                button.innerHTML = '<span>See Less</span><i class="fas fa-chevron-up"></i>';
+            }
+        }
+    };
+    
+    // Test function for bottom button
+    window.testAllPDFsSimple = function() {
+        alert("Use the 'Test Backend' button above to check connection, then 'Search PDFs' to extract content.");
+    };
+</script>
+
+<!-- Add CSS for highlighting -->
+<style>
+    .relevant-case {
+        border-left: 4px solid #28a745 !important;
+        background: linear-gradient(to right, rgba(40, 167, 69, 0.05), white) !important;
+    }
+    
+    .policy-card.relevant-case:hover {
+        border-color: #28a745 !important;
+    }
+    
+    .policy-content {
+        max-height: 150px;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+    }
+    
+    .policy-content.expanded {
+        max-height: 1000px;
+    }
+    
+    .policy-loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #0066cc;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+    <!-- Test button at bottom -->
+    <div style="position: fixed; bottom: 10px; right: 10px; z-index: 1000;">
+       
+    </div>
+</body>
+</html>
