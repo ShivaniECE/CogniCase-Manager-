@@ -709,6 +709,10 @@
                     <i class="fas fa-folder-open"></i>
                     All Cases
                 </a>
+                <a href="case-decision.html" class="nav-item">
+    <i class="fas fa-gavel"></i>
+    <span class="nav-text">Case Decision</span>
+</a>
                 <a href="workspace.html" class="nav-item active">
                     <i class="fas fa-briefcase"></i>
                     Case Workspace
@@ -818,7 +822,10 @@
                             <button id="analyze-btn" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
                                 <i class="fas fa-search"></i> Search PDFs
                             </button>
-                            
+                            <button id="decision-btn" onclick="goToDecisionPage()" 
+            style="padding: 8px 15px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        <i class="fas fa-gavel"></i> Make Decision
+    </button>
                         </div>
                     </div>
                     
@@ -1039,6 +1046,29 @@
             return false;
         }
     }
+    function goToDecisionPage() {
+    // Get current case data
+    const caseData = getCaseData(); // Use your existing function
+    
+    // Store in localStorage for decision page
+    localStorage.setItem('currentCase', JSON.stringify(caseData));
+    
+    // Navigate to decision page with case data
+    const params = new URLSearchParams({
+        caseId: caseData.caseId,
+        claimType: encodeURIComponent(caseData.claimType),
+        state: encodeURIComponent(caseData.state),
+        claimAmount: encodeURIComponent(caseData.claimAmount),
+        damageType: encodeURIComponent(caseData.damageType),
+        priority: encodeURIComponent(caseData.priority),
+        policyNumber: encodeURIComponent(caseData.policyNumber)
+    }).toString();
+    
+    window.location.href = `case-decision.html?${params}`;
+}
+
+// Make function available globally
+window.goToDecisionPage = goToDecisionPage;
     
     async function testBackendConnection() {
         const statusElement = document.getElementById('search-status');

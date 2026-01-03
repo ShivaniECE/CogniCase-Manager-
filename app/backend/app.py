@@ -4,10 +4,12 @@ from services.context_parser import MyContextParser as ContextParser
 from services.policy_retriever import PolicyRetriever
 from services.precedent_retriever import PrecedentRetriever
 from services.citation_builder import CitationBuilder
+from datetime import datetime, timedelta  # Add this line
 import json
 import traceback
 import sys
 import os
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -127,6 +129,375 @@ def generate_suggested_actions(context, precedents, policies):
         actions.append("✓ Review case details and attached documents")
     
     return actions
+@app.route('/api/save-precedent', methods=['POST'])
+def save_precedent():
+    """Save a case decision to precedent memory"""
+    try:
+        print("\n" + "="*60)
+        print("💾 SAVE-PRECEDENT endpoint called")
+        
+        if not request.is_json:
+            return jsonify({'error': 'Request must be JSON'}), 400
+        
+        precedent_data = request.get_json()
+        print(f"📥 Received precedent data for case: {precedent_data.get('case_id', 'Unknown')}")
+        
+        # Validate required fields
+        required_fields = ['case_id', 'claim_type', 'status']
+        for field in required_fields:
+            if field not in precedent_data:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        # Validate status
+        if precedent_data['status'] not in ['approved', 'rejected']:
+            return jsonify({
+                'success': False,
+                'error': 'Status must be "approved" or "rejected"'
+            }), 400
+        
+        # Define precedents file path
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        precedents_file = os.path.join(base_dir, 'data', 'precedent_cases.json')
+        
+        # Create data directory if it doesn't exist
+        data_dir = os.path.dirname(precedents_file)
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+            print(f"📁 Created data directory: {data_dir}")
+        
+        # Load existing precedents
+        precedents = []
+        if os.path.exists(precedents_file):
+            try:
+                with open(precedents_file, 'r') as f:
+                    precedents = json.load(f)
+                print(f"📚 Loaded {len(precedents)} existing precedents")
+            except Exception as e:
+                print(f"⚠️ Error loading precedents file: {e}")
+                precedents = []
+        else:
+            print(f"📝 Creating new precedents file: {precedents_file}")
+        
+        # Add timestamp and ID to new precedent
+        precedent_data['timestamp'] = datetime.now().isoformat()
+        precedent_data['id'] = len(precedents) + 1
+        
+        # Add to precedents array
+        precedents.append(precedent_data)
+        
+        # Save back to file
+        try:
+            with open(precedents_file, 'w') as f:
+                json.dump(precedents, f, indent=2)
+            print(f"✅ Saved precedent #{len(precedents)} to {precedents_file}")
+            
+            return jsonify({
+                'success': True,
+                'message': f'Case {precedent_data["case_id"]} saved to precedent memory',
+                'precedent_id': precedent_data['id'],
+                'total_precedents': len(precedents),
+                'saved_file': precedents_file
+            })
+            
+        except Exception as e:
+            print(f"❌ Error saving precedents file: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to save precedents: {str(e)}'
+            }), 500
+            
+    except Exception as e:
+        print(f"❌ ERROR in save_precedent: {str(e)}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
+
+@app.route('/api/get-precedents', methods=['GET'])
+def get_precedents():
+    """Get all precedent cases"""
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        precedents_file = os.path.join(base_dir, 'data', 'precedent_cases.json')
+        
+        print(f"📖 Reading precedents from: {precedents_file}")
+        
+        if os.path.exists(precedents_file):
+            with open(precedents_file, 'r') as f:
+                precedents = json.load(f)
+        else:
+            precedents = []
+        
+        print(f"📊 Found {len(precedents)} precedent cases")
+        
+        return jsonify({
+            'success': True,
+            'precedents': precedents,
+            'count': len(precedents)
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting precedents: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'precedents': []
+        }), 500
+    """Get all precedent cases"""
+    try:
+        precedents_file = 'data/precedent_cases.json'
+        
+        if os.path.exists(precedents_file):
+            with open(precedents_file, 'r') as f:
+                precedents = json.load(f)
+        else:
+            precedents = []
+        
+        return jsonify({
+            'success': True,
+            'precedents': precedents,
+            'count': len(precedents)
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting precedents: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'precedents': []
+        }), 500
+@app.route('/api/get-precedents-enhanced', methods=['GET'])
+def get_precedents_enhanced():
+    """Get all precedent cases with enhanced analytics"""
+    try:
+        precedents_file = 'data/precedent_cases.json'
+        
+        if os.path.exists(precedents_file):
+            with open(precedents_file, 'r') as f:
+                precedents = json.load(f)
+        else:
+            precedents = []
+        
+        # Calculate analytics
+        total = len(precedents)
+        approved = len([p for p in precedents if p.get('status') == 'approved'])
+        rejected = len([p for p in precedents if p.get('status') == 'rejected'])
+        
+        # Calculate claim amounts
+        amounts = [float(p.get('claim_amount', 0)) for p in precedents if p.get('claim_amount')]
+        avg_amount = sum(amounts) / len(amounts) if amounts else 0
+        
+        # Group by claim type
+        claim_types = {}
+        for p in precedents:
+            claim_type = p.get('claim_type', 'Unknown')
+            if claim_type not in claim_types:
+                claim_types[claim_type] = 0
+            claim_types[claim_type] += 1
+        
+        # Get recent activity (last 30 days)
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        recent = []
+        for p in precedents:
+            try:
+                timestamp = p.get('timestamp') or p.get('decision_date')
+                if timestamp:
+                    case_date = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    if case_date > thirty_days_ago:
+                        recent.append(p)
+            except:
+                continue
+        
+        return jsonify({
+            'success': True,
+            'precedents': precedents,
+            'analytics': {
+                'total': total,
+                'approved': approved,
+                'rejected': rejected,
+                'approval_rate': (approved / total * 100) if total > 0 else 0,
+                'avg_claim_amount': avg_amount,
+                'claim_types': claim_types,
+                'recent_30_days': len(recent),
+                'total_amount': sum(amounts)
+            },
+            'count': total
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting enhanced precedents: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'precedents': [],
+            'analytics': {}
+        }), 500
+
+@app.route('/api/search-precedents', methods=['POST'])
+def search_precedents():
+    """Search precedents with filters"""
+    try:
+        data = request.get_json() or {}
+        
+        precedents_file = 'data/precedent_cases.json'
+        if os.path.exists(precedents_file):
+            with open(precedents_file, 'r') as f:
+                all_precedents = json.load(f)
+        else:
+            all_precedents = []
+        
+        # Apply filters
+        filtered = all_precedents
+        
+        # Status filter
+        status = data.get('status')
+        if status:
+            filtered = [p for p in filtered if p.get('status') == status]
+        
+        # Claim type filter
+        claim_type = data.get('claim_type')
+        if claim_type:
+            filtered = [p for p in filtered if p.get('claim_type') == claim_type]
+        
+        # Search term
+        search_term = data.get('search', '').lower()
+        if search_term:
+            filtered = [p for p in filtered if 
+                       search_term in (p.get('case_id', '')).lower() or
+                       search_term in (p.get('claim_type', '')).lower() or
+                       search_term in (p.get('state', '')).lower() or
+                       search_term in (p.get('decision_reason', '')).lower() or
+                       any(search_term in factor.lower() for factor in p.get('key_factors', []))]
+        
+        # Sort (newest first by default)
+        sort_by = data.get('sort_by', 'timestamp')
+        reverse = data.get('reverse', True)
+        
+        try:
+            filtered.sort(key=lambda x: x.get(sort_by, ''), reverse=reverse)
+        except:
+            # Fallback to timestamp sorting
+            filtered.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        # Pagination
+        page = data.get('page', 1)
+        per_page = data.get('per_page', 10)
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        
+        paginated = filtered[start_idx:end_idx]
+        
+        return jsonify({
+            'success': True,
+            'precedents': paginated,
+            'total': len(filtered),
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (len(filtered) + per_page - 1) // per_page
+        })
+        
+    except Exception as e:
+        print(f"❌ Error searching precedents: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'precedents': [],
+            'total': 0
+        }), 500
+@app.route('/api/clear-precedents', methods=['POST'])
+def clear_precedents():
+    """Clear all precedent memory"""
+    try:
+        print("\n" + "="*60)
+        print("🗑️  Clearing all precedent memory...")
+        
+        # Clear the JSON file
+        precedents_file = 'data/precedent_cases.json'
+        
+        if os.path.exists(precedents_file):
+            # Create a backup before clearing (optional)
+            backup_file = f"data/precedent_cases_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            try:
+                import shutil
+                shutil.copy2(precedents_file, backup_file)
+                print(f"📦 Created backup: {backup_file}")
+            except Exception as backup_error:
+                print(f"⚠️ Could not create backup: {backup_error}")
+            
+            # Clear the file
+            with open(precedents_file, 'w') as f:
+                json.dump([], f)
+            
+            print("✅ Precedent memory file cleared")
+            
+            return jsonify({
+                'success': True,
+                'message': 'All precedent memory has been cleared',
+                'backup_created': os.path.exists(backup_file) if 'backup_file' in locals() else False,
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            # File doesn't exist, but that's okay
+            print("ℹ️  Precedent file doesn't exist (already empty)")
+            return jsonify({
+                'success': True,
+                'message': 'Precedent memory was already empty',
+                'timestamp': datetime.now().isoformat()
+            })
+            
+    except Exception as e:
+        print(f"❌ ERROR clearing precedents: {str(e)}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
+
+@app.route('/api/backup-precedents', methods=['GET'])
+def backup_precedents():
+    """Create a backup of precedent memory"""
+    try:
+        precedents_file = 'data/precedent_cases.json'
+        
+        if not os.path.exists(precedents_file):
+            return jsonify({
+                'success': False,
+                'error': 'No precedent file found'
+            }), 404
+        
+        # Create backup filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_file = f"data/backups/precedent_backup_{timestamp}.json"
+        
+        # Ensure backup directory exists
+        os.makedirs(os.path.dirname(backup_file), exist_ok=True)
+        
+        # Copy file
+        import shutil
+        shutil.copy2(precedents_file, backup_file)
+        
+        print(f"✅ Created backup: {backup_file}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Backup created: {backup_file}',
+            'backup_file': backup_file,
+            'timestamp': timestamp
+        })
+        
+    except Exception as e:
+        print(f"❌ ERROR creating backup: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 
 @app.route('/api/analyze-case', methods=['POST'])
 def analyze_case():
